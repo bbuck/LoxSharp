@@ -26,6 +26,10 @@ namespace LoxSharp
 					Execute(statement);
 				}
 			}
+			catch (LoopControlException error)
+			{
+				Lox.Error(error.Token, error.Message);
+			}
 			catch (RuntimeError error)
 			{
 				Lox.Error(error);
@@ -150,11 +154,6 @@ namespace LoxSharp
 					if (left is double && right is double)
 					{
 						return (double)left + (double)right;
-					}
-
-					if (left is string && right is string)
-					{
-						return (string)left + (string)right;
 					}
 
 					if (left is string)
