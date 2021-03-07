@@ -11,6 +11,8 @@ namespace LoxSharp
 		public interface IVisitor<R>
 		{
 			R VisitBinaryExpr(Binary expr);
+			R VisitCallExpr(Call expr);
+			R VisitFunctionExpr(Function expr);
 			R VisitLogicalExpr(Logical expr);
 			R VisitGroupingExpr(Grouping expr);
 			R VisitLiteralExpr(Literal expr);
@@ -35,6 +37,42 @@ namespace LoxSharp
 			public override R Accept<R>(IVisitor<R> visitor)
 			{
 				return visitor.VisitBinaryExpr(this);
+			}
+		}
+
+		public class Call : Expr
+		{
+			public Expr Callee { get; }
+			public Token Paren { get; }
+			public List<Expr> Arguments { get; }
+
+			public Call(Expr callee, Token paren, List<Expr> arguments)
+			{
+				this.Callee = callee;
+				this.Paren = paren;
+				this.Arguments = arguments;
+			}
+
+			public override R Accept<R>(IVisitor<R> visitor)
+			{
+				return visitor.VisitCallExpr(this);
+			}
+		}
+
+		public class Function : Expr
+		{
+			public List<Token> Parameters { get; }
+			public List<Stmt> Body { get; }
+
+			public Function(List<Token> parameters, List<Stmt> body)
+			{
+				this.Parameters = parameters;
+				this.Body = body;
+			}
+
+			public override R Accept<R>(IVisitor<R> visitor)
+			{
+				return visitor.VisitFunctionExpr(this);
 			}
 		}
 

@@ -11,6 +11,8 @@ namespace LoxSharp
 		public interface IVisitor<R>
 		{
 			R VisitExpressionStmt(Expression stmt);
+			R VisitFunctionStmt(Function stmt);
+			R VisitReturnStmt(Return stmt);
 			R VisitPrintStmt(Print stmt);
 			R VisitVarStmt(Var stmt);
 			R VisitBlockStmt(Block stmt);
@@ -31,6 +33,42 @@ namespace LoxSharp
 			public override R Accept<R>(IVisitor<R> visitor)
 			{
 				return visitor.VisitExpressionStmt(this);
+			}
+		}
+
+		public class Function : Stmt
+		{
+			public Token Name { get; }
+			public List<Token> Parameters { get; }
+			public List<Stmt> Body { get; }
+
+			public Function(Token name, List<Token> parameters, List<Stmt> body)
+			{
+				this.Name = name;
+				this.Parameters = parameters;
+				this.Body = body;
+			}
+
+			public override R Accept<R>(IVisitor<R> visitor)
+			{
+				return visitor.VisitFunctionStmt(this);
+			}
+		}
+
+		public class Return : Stmt
+		{
+			public Token Keyword { get; }
+			public Expr Value { get; }
+
+			public Return(Token keyword, Expr value)
+			{
+				this.Keyword = keyword;
+				this.Value = value;
+			}
+
+			public override R Accept<R>(IVisitor<R> visitor)
+			{
+				return visitor.VisitReturnStmt(this);
 			}
 		}
 

@@ -15,7 +15,33 @@ namespace LoxSharp
 			}
 		}
 
-		private Environment _environment = new Environment();
+		public class ReturnException : Exception
+		{
+			public object Value { get; }
+
+			public ReturnException(object value)
+			{
+				Value = value;
+			}
+		}
+
+		public Environment Globals { get; } = new Environment();
+
+		private Environment _environment;
+
+		public Interpreter()
+		{
+			_environment = Globals;
+			Globals.Define("clock", new NativeFunction(
+				0,
+				delegate (Interpreter interpreter, List<object> arguments)
+				{
+					double seconds = DateTime.Now.Ticks / TimeSpan.TicksPerSecond;
+
+					return seconds;
+				}
+			));
+		}
 
 		public void Interpret(List<Stmt> statements)
 		{
@@ -49,6 +75,25 @@ namespace LoxSharp
 			Console.WriteLine(Stringify(value));
 
 			return null;
+		}
+
+		public object VisitFunctionStmt(Stmt.Function stmt)
+		{
+			LoxFunction function = new LoxFunction(stmt, _environment);
+			_environment.Define(function.Name, function);
+
+			return null;
+		}
+
+		public object VisitReturnStmt(Stmt.Return stmt)
+		{
+			object value = null;
+			if (stmt.Value != null)
+			{
+				value = Evaluate(stmt.Value);
+			}
+
+			throw new ReturnException(value);
 		}
 
 		public object VisitVarStmt(Stmt.Var stmt)
@@ -198,6 +243,30 @@ namespace LoxSharp
 			return null;
 		}
 
+		public object VisitCallExpr(Expr.Call expr)
+		{
+			object callee = Evaluate(expr.Callee);
+
+			List<object> arguments = new List<object>();
+			foreach (Expr argument in expr.Arguments)
+			{
+				arguments.Add(Evaluate(argument));
+			}
+
+			if (!(callee is ILoxCallable))
+			{
+				throw new RuntimeError(expr.Paren, "Can only call functions and classes.");
+			}
+
+			ILoxCallable function = callee as ILoxCallable;
+			if (arguments.Count != function.Arity)
+			{
+				throw new RuntimeError(expr.Paren, "Expected " + function.Arity + "arguments but got " + arguments.Count + ".");
+			}
+
+			return function.Call(this, arguments);
+		}
+
 		public object VisitLogicalExpr(Expr.Logical expr)
 		{
 			object left = Evaluate(expr.Left);
@@ -231,6 +300,13 @@ namespace LoxSharp
 			_environment.Assign(expr.Name, value);
 
 			return value;
+		}
+
+		public object VisitFunctionExpr(Expr.Function expr)
+		{
+			LoxAnonymousFunction function = new LoxAnonymousFunction(expr, _environment);
+
+			return function;
 		}
 
 		private string Stringify(object value)
@@ -324,7 +400,7 @@ namespace LoxSharp
 			stmt.Accept(this);
 		}
 
-		private void ExecuteBlock(List<Stmt> statements, Environment environment)
+		public void ExecuteBlock(List<Stmt> statements, Environment environment)
 		{
 			Environment previous = _environment;
 			_environment = environment;

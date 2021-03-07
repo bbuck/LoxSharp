@@ -12,6 +12,8 @@ end
 
 EXPRS = '
 Binary   : Expr left, Token op, Expr right
+Call     : Expr callee, Token paren, List<Expr> arguments
+Function : List<Token> parameters, List<Stmt> body
 Logical  : Expr left, Token op, Expr right
 Grouping : Expr expression
 Literal  : object value
@@ -22,6 +24,8 @@ Assign   : Token name, Expr value
 
 STMTS = '
 Expression  : Expr expr
+Function    : Token name, List<Token> parameters, List<Stmt> body
+Return      : Token keyword, Expr value
 Print       : Expr expr
 Var         : Token name, Expr initializer
 Block       : List<Stmt> statements

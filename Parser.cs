@@ -27,12 +27,19 @@ namespace LoxSharp
 			return statements;
 		}
 
-		// declaration -> varDecl
+		// declaration -> funDecl
+		//              | varDecl
 		//              | statement
+		// funDecl -> "fun" function
 		private Stmt Declaration()
 		{
 			try
 			{
+				if (Match(TokenType.Fun))
+				{
+					return Function("function");
+				}
+
 				if (Match(TokenType.Var))
 				{
 					return VarDeclaration();
@@ -46,6 +53,42 @@ namespace LoxSharp
 
 				return null;
 			}
+		}
+
+		// function -> IDENTIFIER "(" paramters? ")" block
+		// paramters -> IDENTIFIER ( "," IDENTIFIER )*
+		private Stmt Function(string kind)
+		{
+			if (kind == "function" && !Check(TokenType.Identifier))
+			{
+				Expr expr = AnonymousFunction();
+				Consume(TokenType.Semicolon, "Expected ';' after expression");
+
+				return new Stmt.Expression(expr);
+			}
+
+			Token name = Consume(TokenType.Identifier, "Expect " + kind + " name.");
+
+			Consume(TokenType.LeftParen, "Expect '(' after " + kind + " name.");
+			List<Token> parameters = new List<Token>();
+			if (!Check(TokenType.RightParen))
+			{
+				do
+				{
+					if (parameters.Count >= 255)
+					{
+						Error(Peek(), "Can't have more than 255 parameters");
+					}
+
+					parameters.Add(Consume(TokenType.Identifier, "Expect paramter name."));
+				} while (Match(TokenType.Comma));
+			}
+			Consume(TokenType.RightParen, "Expect ')' after parameters");
+
+			Consume(TokenType.LeftBrace, "Expect '{' before " + kind + " body.");
+			List<Stmt> body = Block();
+
+			return new Stmt.Function(name, parameters, body);
 		}
 
 		// varDecl -> "var" IDENTIFIER ( "=" expression )? ";"
@@ -69,6 +112,7 @@ namespace LoxSharp
 		//            | printStmt
 		//            | whileStmt
 		//            | forStmt
+		//            | returnStmt
 		//            | loopControl
 		//            | block
 		private Stmt Statement()
@@ -93,6 +137,11 @@ namespace LoxSharp
 				return ForStatement();
 			}
 
+			if (Match(TokenType.Return))
+			{
+				return ReturnStatement();
+			}
+
 			if (Match(TokenType.LeftBrace))
 			{
 				return new Stmt.Block(Block());
@@ -104,6 +153,21 @@ namespace LoxSharp
 			}
 
 			return ExpressionStatement();
+		}
+
+		// returnStmt -> "return" expression? ";"
+		private Stmt ReturnStatement()
+		{
+			Token keyword = Previous();
+			Expr value = null;
+			if (!Check(TokenType.Semicolon))
+			{
+				value = Expression();
+			}
+
+			Consume(TokenType.Semicolon, "Expected ';' after return statement");
+
+			return new Stmt.Return(keyword, value);
 		}
 
 		// loopControlStmt -> "break" ";"
@@ -363,7 +427,7 @@ namespace LoxSharp
 		}
 
 		// unary -> ( "!" | "-" ) unary
-		//        | primary
+		//        | call
 		private Expr Unary()
 		{
 			if (Match(TokenType.Bang, TokenType.Minus))
@@ -374,8 +438,50 @@ namespace LoxSharp
 				return new Expr.Unary(op, right);
 			}
 
-			return Primary();
+			return Call();
 		}
+
+		// call -> primary ( "(" arguments? ")" )*
+		private Expr Call()
+		{
+			Expr expr = Primary();
+
+			while (true)
+			{
+				if (Match(TokenType.LeftParen))
+				{
+					expr = FinishCall(expr);
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			return expr;
+		}
+
+		private Expr FinishCall(Expr callee)
+		{
+			List<Expr> arguments = new List<Expr>();
+			if (!Check(TokenType.RightParen))
+			{
+				do
+				{
+					if (arguments.Count >= 255)
+					{
+						Error(Peek(), "Can't have more than 255 arguments.");
+					}
+					arguments.Add(Expression());
+				} while (Match(TokenType.Comma));
+			}
+
+			Token paren = Consume(TokenType.RightParen, "Expect ')' after arguments.");
+
+			return new Expr.Call(callee, paren, arguments);
+		}
+
+		// arguments -> expression ( "," expression )*
 
 		// primary        → NUMBER | STRING | "true" | "false" | "nil"
 		//                | "(" expression ")" ;
@@ -414,7 +520,38 @@ namespace LoxSharp
 				return new Expr.Variable(Previous());
 			}
 
+			if (Match(TokenType.Fun))
+			{
+				return AnonymousFunction();
+			}
+
 			throw Error(Peek(), "Expect expression.");
+		}
+
+		// anonymous_function -> "fun" "(" parameters? ")" block
+		private Expr AnonymousFunction()
+		{
+			Consume(TokenType.LeftParen, "Expected '(' after fun keyword");
+
+			List<Token> parameters = new List<Token>();
+			if (!Check(TokenType.RightParen))
+			{
+				do
+				{
+					if (parameters.Count >= 255)
+					{
+						Error(Peek(), "A function can't have more than 255 parameters.");
+					}
+
+					parameters.Add(Consume(TokenType.Identifier, "Expected parameter name."));
+				} while (Match(TokenType.Comma));
+			}
+			Consume(TokenType.RightParen, "Expect ')' after parenthesis");
+
+			Consume(TokenType.LeftBrace, "Expect '{' before function body");
+			List<Stmt> body = Block();
+
+			return new Expr.Function(parameters, body);
 		}
 
 		private void Synchronize()
