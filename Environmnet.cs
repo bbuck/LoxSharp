@@ -52,7 +52,7 @@ namespace LoxSharp
 				return;
 			}
 
-			throw new RuntimeError(name, string.Format("Undefined variable '{0}'.", name.Lexeme));
+			throw new RuntimeError(name, string.Format("Undefined variable '{0}' assigned to.", name.Lexeme));
 		}
 
 		public void AssignAt(int distance, Token name, object value)
@@ -77,7 +77,7 @@ namespace LoxSharp
 				return Enclosing.Get(name);
 			}
 
-			throw new RuntimeError(name, string.Format("Undefined variable '{0}'.", name.Lexeme));
+			throw new RuntimeError(name, string.Format("Undefined variable '{0}' referenced.", name.Lexeme));
 		}
 
 		public object GetAt(int distance, string name)

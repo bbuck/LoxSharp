@@ -8,16 +8,29 @@ namespace LoxSharp
 		Function,
 	}
 
+	enum VariableStatus
+	{
+		Declared,
+		Defined,
+		Used,
+	}
+
 	class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 	{
+		class Variable
+		{
+			public VariableStatus VariableStatus { get; set; }
+			public Token Token { get; set; }
+		}
+
 		private readonly Interpreter _interpreter;
-		private readonly List<Dictionary<string, bool>> _scopes;
+		private readonly List<Dictionary<string, Variable>> _scopes;
 		private FunctionType _currentFunction = FunctionType.None;
 
 		public Resolver(Interpreter interpreter)
 		{
 			_interpreter = interpreter;
-			_scopes = new List<Dictionary<string, bool>>();
+			_scopes = new List<Dictionary<string, Variable>>();
 		}
 
 		public object VisitBlockStmt(Stmt.Block stmt)
@@ -45,8 +58,8 @@ namespace LoxSharp
 		{
 			if (_scopes.Count > 0)
 			{
-				var scope = _scopes[_scopes.Count - 1];
-				if (scope.ContainsKey(expr.Name.Lexeme) && scope[expr.Name.Lexeme] == false)
+				var scope = _scopes.Last();
+				if (scope.ContainsKey(expr.Name.Lexeme) && scope[expr.Name.Lexeme].VariableStatus == VariableStatus.Declared)
 				{
 					Lox.Error(expr.Name, "Can't read local variable in its own initializer.");
 				}
@@ -61,6 +74,7 @@ namespace LoxSharp
 		{
 			Declare(stmt.Name);
 			Define(stmt.Name);
+			UseVariable(stmt.Name);
 
 			ResolveFunction(stmt, FunctionType.Function);
 
@@ -205,6 +219,7 @@ namespace LoxSharp
 				if (_scopes[i].ContainsKey(name.Lexeme))
 				{
 					_interpreter.Resolve(expr, _scopes.Count - 1 - i);
+					_scopes[i][name.Lexeme].VariableStatus = VariableStatus.Used;
 
 					return;
 				}
@@ -221,6 +236,7 @@ namespace LoxSharp
 			{
 				Declare(param);
 				Define(param);
+				UseVariable(param);
 			}
 			Resolve(function.Body);
 			EndScope();
@@ -238,6 +254,7 @@ namespace LoxSharp
 			{
 				Declare(param);
 				Define(param);
+				UseVariable(param);
 			}
 			Resolve(function.Body);
 			EndScope();
@@ -247,11 +264,21 @@ namespace LoxSharp
 
 		void BeginScope()
 		{
-			_scopes.Add(new Dictionary<string, bool>());
+			_scopes.Add(new Dictionary<string, Variable>());
 		}
 
 		void EndScope()
 		{
+			var scope = _scopes.Last();
+
+			foreach (var entry in scope)
+			{
+				if (entry.Value.VariableStatus != VariableStatus.Used)
+				{
+					Lox.Error(entry.Value.Token, "Unused variable");
+				}
+			}
+
 			_scopes.RemoveAt(_scopes.Count - 1);
 		}
 
@@ -262,14 +289,18 @@ namespace LoxSharp
 				return;
 			}
 
-			var scope = _scopes[_scopes.Count - 1];
+			var scope = _scopes.Last();
 
 			if (scope.ContainsKey(name.Lexeme))
 			{
 				Lox.Error(name, "Already variable with this name in this scope.");
 			}
 
-			scope[name.Lexeme] = false;
+			scope[name.Lexeme] = new Variable
+			{
+				Token = name,
+				VariableStatus = VariableStatus.Declared,
+			};
 		}
 
 		void Define(Token name)
@@ -279,8 +310,19 @@ namespace LoxSharp
 				return;
 			}
 
-			var scope = _scopes[_scopes.Count - 1];
-			scope[name.Lexeme] = true;
+			var scope = _scopes.Last();
+			scope[name.Lexeme].VariableStatus = VariableStatus.Defined;
+		}
+
+		void UseVariable(Token name)
+		{
+			if (_scopes.Count == 0)
+			{
+				return;
+			}
+
+			var scope = _scopes.Last();
+			scope[name.Lexeme].VariableStatus = VariableStatus.Used;
 		}
 	}
 }
