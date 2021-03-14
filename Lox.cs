@@ -89,10 +89,12 @@ namespace LoxSharp
 			Parser parser = new Parser(tokens);
 			List<Stmt> statements = parser.Parse();
 
-			if (_hadError)
-			{
-				return;
-			}
+			if (_hadError) { return; }
+
+			Resolver resolver = new Resolver(_Interpreter);
+			resolver.Resolve(statements);
+
+			if (_hadError) { return; }
 
 			_Interpreter.Interpret(statements);
 		}
@@ -111,6 +113,15 @@ namespace LoxSharp
 			}
 
 			Stmt stmt = statements[0];
+
+			var resolver = new Resolver(_Interpreter);
+			resolver.Resolve(stmt);
+
+			if (_hadError)
+			{
+				return;
+			}
+
 			if (stmt is Stmt.Expression)
 			{
 				Expr expr = (stmt as Stmt.Expression).Expr;

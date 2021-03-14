@@ -28,6 +28,7 @@ namespace LoxSharp
 		public Environment Globals { get; } = new Environment();
 
 		private Environment _environment;
+		private Dictionary<Expr, int> _locals = new Dictionary<Expr, int>();
 
 		public Interpreter()
 		{
@@ -60,6 +61,11 @@ namespace LoxSharp
 			{
 				Lox.Error(error);
 			}
+		}
+
+		public void Resolve(Expr expr, int depth)
+		{
+			_locals[expr] = depth;
 		}
 
 		public object VisitExpressionStmt(Stmt.Expression stmt)
@@ -291,13 +297,22 @@ namespace LoxSharp
 
 		public object VisitVariableExpr(Expr.Variable expr)
 		{
-			return _environment.Get(expr.Name);
+			return LookUpVariable(expr.Name, expr);
 		}
 
 		public object VisitAssignExpr(Expr.Assign expr)
 		{
 			object value = Evaluate(expr.Value);
-			_environment.Assign(expr.Name, value);
+
+			if (_locals.ContainsKey(expr))
+			{
+				int distance = _locals[expr];
+				_environment.AssignAt(distance, expr.Name, value);
+			}
+			else
+			{
+				Globals.Assign(expr.Name, value);
+			}
 
 			return value;
 		}
@@ -414,6 +429,20 @@ namespace LoxSharp
 			finally
 			{
 				_environment = previous;
+			}
+		}
+
+		object LookUpVariable(Token name, Expr expr)
+		{
+			if (_locals.ContainsKey(expr))
+			{
+				int distance = _locals[expr];
+
+				return _environment.GetAt(distance, name.Lexeme);
+			}
+			else
+			{
+				return Globals.Get(name);
 			}
 		}
 	}
