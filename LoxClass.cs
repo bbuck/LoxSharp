@@ -1,8 +1,18 @@
+using System.Collections.Generic;
+
 namespace LoxSharp
 {
-	class LoxClass
+	class LoxClass : ILoxCallable
 	{
-		readonly string Name;
+		public readonly string Name;
+
+		public int Arity
+		{
+			get
+			{
+				return 0;
+			}
+		}
 
 		public LoxClass(string name)
 		{
@@ -12,6 +22,13 @@ namespace LoxSharp
 		public override string ToString()
 		{
 			return Name;
+		}
+
+		public object Call(Interpreter interpreter, List<object> arguments)
+		{
+			var instance = new LoxInstance(this);
+
+			return instance;
 		}
 	}
 }
