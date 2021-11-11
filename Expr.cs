@@ -19,6 +19,7 @@ namespace LoxSharp
 			R VisitUnaryExpr(Unary expr);
 			R VisitVariableExpr(Variable expr);
 			R VisitAssignExpr(Assign expr);
+			R VisitGetExpr(Get expr);
 		}
 
 		public class Binary : Expr
@@ -171,6 +172,23 @@ namespace LoxSharp
 			public override R Accept<R>(IVisitor<R> visitor)
 			{
 				return visitor.VisitAssignExpr(this);
+			}
+		}
+
+		public class Get : Expr
+		{
+			public Expr Obj { get; }
+			public Token Name { get; }
+
+			public Get(Expr obj, Token name)
+			{
+				this.Obj = obj;
+				this.Name = name;
+			}
+
+			public override R Accept<R>(IVisitor<R> visitor)
+			{
+				return visitor.VisitGetExpr(this);
 			}
 		}
 	}

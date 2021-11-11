@@ -282,6 +282,17 @@ namespace LoxSharp
 			return function.Call(this, arguments);
 		}
 
+		public object VisitGetExpr(Expr.Get expr)
+		{
+			object obj = Evaluate(expr.Obj);
+			if (obj is LoxInstance)
+			{
+				return ((LoxInstance)obj).Get(expr.Name);
+			}
+
+			throw new RuntimeError(expr.Name, "Only instances have properties.");
+		}
+
 		public object VisitLogicalExpr(Expr.Logical expr)
 		{
 			object left = Evaluate(expr.Left);

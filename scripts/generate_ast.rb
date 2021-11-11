@@ -20,6 +20,7 @@ Literal  : object value
 Unary    : Token op, Expr right
 Variable : Token name
 Assign   : Token name, Expr value
+Get      : Expr obj, Token name
 '.split("\n").map(&:strip).reject(&:empty?)
 
 STMTS = '

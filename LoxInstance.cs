@@ -1,8 +1,11 @@
+using System.Collections.Generic;
+
 namespace LoxSharp
 {
 	class LoxInstance
 	{
 		private LoxClass _klass;
+		private readonly Dictionary<string, object> _fields = new Dictionary<string, object>();
 
 		public LoxInstance(LoxClass klass)
 		{
@@ -12,6 +15,16 @@ namespace LoxSharp
 		public override string ToString()
 		{
 			return $"{_klass.Name} instance";
+		}
+
+		public object Get(Token name)
+		{
+			if (_fields.ContainsKey(name.Lexeme))
+			{
+				return _fields[name.Lexeme];
+			}
+
+			throw new RuntimeError(name, $"Undefined property '{name.Lexeme}'.");
 		}
 	}
 }

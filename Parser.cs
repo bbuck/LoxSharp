@@ -464,7 +464,7 @@ namespace LoxSharp
 			return Call();
 		}
 
-		// call -> primary ( "(" arguments? ")" )*
+		// call -> primary ( "(" arguments? ")" | "." IDENTIFIER )*
 		private Expr Call()
 		{
 			Expr expr = Primary();
@@ -474,6 +474,11 @@ namespace LoxSharp
 				if (Match(TokenType.LeftParen))
 				{
 					expr = FinishCall(expr);
+				}
+				else if (Match(TokenType.Dot))
+				{
+					Token name = Consume(TokenType.Identifier, "Expect property name after '.'.");
+					expr = new Expr.Get(expr, name);
 				}
 				else
 				{
