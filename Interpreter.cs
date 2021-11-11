@@ -293,6 +293,21 @@ namespace LoxSharp
 			throw new RuntimeError(expr.Name, "Only instances have properties.");
 		}
 
+		public object VisitSetExpr(Expr.Set expr)
+		{
+			object obj = Evaluate(expr.Obj);
+
+			if (!(obj is LoxInstance))
+			{
+				throw new RuntimeError(expr.Name, "Only instances have fields.");
+			}
+
+			object value = Evaluate(expr.Value);
+			((LoxInstance)obj).Set(expr.Name, value);
+
+			return value;
+		}
+
 		public object VisitLogicalExpr(Expr.Logical expr)
 		{
 			object left = Evaluate(expr.Left);

@@ -26,5 +26,10 @@ namespace LoxSharp
 
 			throw new RuntimeError(name, $"Undefined property '{name.Lexeme}'.");
 		}
+
+		public void Set(Token name, object value)
+		{
+			_fields[name.Lexeme] = value;
+		}
 	}
 }

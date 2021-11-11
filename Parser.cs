@@ -335,7 +335,7 @@ namespace LoxSharp
 			return Assignment();
 		}
 
-		// assignment -> IDENTIFIER "=" assignment
+		// assignment -> ( call "." )? IDENTIFIER "=" assignment
 		//             | logicOr
 		private Expr Assignment()
 		{
@@ -351,6 +351,12 @@ namespace LoxSharp
 					Token name = ((Expr.Variable)expr).Name;
 
 					return new Expr.Assign(name, value);
+				}
+				else if (expr is Expr.Get)
+				{
+					var get = (Expr.Get)expr;
+
+					return new Expr.Set(get.Obj, get.Name, value);
 				}
 
 				Error(equals, "Invalid assignment target.");

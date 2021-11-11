@@ -182,6 +182,14 @@ namespace LoxSharp
 			return null;
 		}
 
+		public object VisitSetExpr(Expr.Set expr)
+		{
+			Resolve(expr.Value);
+			Resolve(expr.Obj);
+
+			return null;
+		}
+
 		public object VisitGroupingExpr(Expr.Grouping expr)
 		{
 			Resolve(expr.Expression);
