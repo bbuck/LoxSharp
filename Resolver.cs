@@ -22,7 +22,10 @@ namespace LoxSharp
 		{
 			public VariableStatus VariableStatus { get; set; }
 			public Token Token { get; set; }
+			public string Name { get; set; }
 		}
+
+		public static readonly string ThisVariableName = "this";
 
 		private readonly Interpreter _interpreter;
 		private readonly List<Dictionary<string, Variable>> _scopes;
@@ -87,11 +90,18 @@ namespace LoxSharp
 			Declare(stmt.Name);
 			Define(stmt.Name);
 
+			BeginScope();
+			Declare(ThisVariableName);
+			Define(ThisVariableName);
+			UseVariable(ThisVariableName);
+
 			foreach (var method in stmt.Methods)
 			{
 				FunctionType declaration = FunctionType.Method;
 				ResolveFunction(method, declaration);
 			}
+
+			EndScope();
 
 			return null;
 		}
@@ -107,6 +117,13 @@ namespace LoxSharp
 		{
 			Resolve(expr.Value);
 			ResolveLocal(expr, expr.Name);
+
+			return null;
+		}
+
+		public object VisitThisExpr(Expr.This expr)
+		{
+			ResolveLocal(expr, expr.Keyword);
 
 			return null;
 		}
@@ -303,7 +320,7 @@ namespace LoxSharp
 
 			foreach (var entry in scope)
 			{
-				if (entry.Value.VariableStatus != VariableStatus.Used)
+				if (entry.Value.Token != null && entry.Value.VariableStatus != VariableStatus.Used)
 				{
 					Lox.Error(entry.Value.Token, "Unused variable");
 				}
@@ -333,7 +350,7 @@ namespace LoxSharp
 			};
 		}
 
-		void Define(Token name)
+		void Declare(string name)
 		{
 			if (_scopes.Count == 0)
 			{
@@ -341,18 +358,44 @@ namespace LoxSharp
 			}
 
 			var scope = _scopes.Last();
-			scope[name.Lexeme].VariableStatus = VariableStatus.Defined;
+
+			scope[name] = new Variable
+			{
+				Name = name,
+				VariableStatus = VariableStatus.Declared,
+			};
+		}
+
+		void Define(string name)
+		{
+			if (_scopes.Count == 0)
+			{
+				return;
+			}
+
+			var scope = _scopes.Last();
+			scope[name].VariableStatus = VariableStatus.Defined;
+		}
+
+		void Define(Token name)
+		{
+			Define(name.Lexeme);
 		}
 
 		void UseVariable(Token name)
 		{
+			UseVariable(name.Lexeme);
+		}
+
+		void UseVariable(string name)
+		{
 			if (_scopes.Count == 0)
 			{
 				return;
 			}
 
 			var scope = _scopes.Last();
-			scope[name.Lexeme].VariableStatus = VariableStatus.Used;
+			scope[name].VariableStatus = VariableStatus.Used;
 		}
 	}
 }

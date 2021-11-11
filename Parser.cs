@@ -549,6 +549,11 @@ namespace LoxSharp
 				return new Expr.Grouping(expr);
 			}
 
+			if (Match(TokenType.This))
+			{
+				return new Expr.This(Previous());
+			}
+
 			if (Match(TokenType.Identifier))
 			{
 				return new Expr.Variable(Previous());

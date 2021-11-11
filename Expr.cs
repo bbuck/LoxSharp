@@ -21,6 +21,7 @@ namespace LoxSharp
 			R VisitAssignExpr(Assign expr);
 			R VisitGetExpr(Get expr);
 			R VisitSetExpr(Set expr);
+			R VisitThisExpr(This expr);
 		}
 
 		public class Binary : Expr
@@ -209,6 +210,21 @@ namespace LoxSharp
 			public override R Accept<R>(IVisitor<R> visitor)
 			{
 				return visitor.VisitSetExpr(this);
+			}
+		}
+
+		public class This : Expr
+		{
+			public Token Keyword { get; }
+
+			public This(Token keyword)
+			{
+				this.Keyword = keyword;
+			}
+
+			public override R Accept<R>(IVisitor<R> visitor)
+			{
+				return visitor.VisitThisExpr(this);
 			}
 		}
 	}

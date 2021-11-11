@@ -22,6 +22,7 @@ Variable : Token name
 Assign   : Token name, Expr value
 Get      : Expr obj, Token name
 Set      : Expr obj, Token name, Expr value
+This     : Token keyword
 '.split("\n").map(&:strip).reject(&:empty?)
 
 STMTS = '

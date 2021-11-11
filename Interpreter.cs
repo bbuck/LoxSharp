@@ -108,6 +108,11 @@ namespace LoxSharp
 			return null;
 		}
 
+		public object VisitThisExpr(Expr.This expr)
+		{
+			return LookUpVariable(expr.Keyword, expr);
+		}
+
 		public object VisitReturnStmt(Stmt.Return stmt)
 		{
 			object value = null;
