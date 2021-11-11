@@ -6,6 +6,7 @@ namespace LoxSharp
 	{
 		None,
 		Function,
+		Method,
 	}
 
 	enum VariableStatus
@@ -85,6 +86,12 @@ namespace LoxSharp
 		{
 			Declare(stmt.Name);
 			Define(stmt.Name);
+
+			foreach (var method in stmt.Methods)
+			{
+				FunctionType declaration = FunctionType.Method;
+				ResolveFunction(method, declaration);
+			}
 
 			return null;
 		}

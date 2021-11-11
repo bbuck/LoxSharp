@@ -24,6 +24,12 @@ namespace LoxSharp
 				return _fields[name.Lexeme];
 			}
 
+			var method = _klass.FindMethod(name.Lexeme);
+			if (method != null)
+			{
+				return method;
+			}
+
 			throw new RuntimeError(name, $"Undefined property '{name.Lexeme}'.");
 		}
 

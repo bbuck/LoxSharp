@@ -5,6 +5,7 @@ namespace LoxSharp
 	class LoxClass : ILoxCallable
 	{
 		public readonly string Name;
+		private readonly Dictionary<string, LoxFunction> _methods;
 
 		public int Arity
 		{
@@ -14,9 +15,10 @@ namespace LoxSharp
 			}
 		}
 
-		public LoxClass(string name)
+		public LoxClass(string name, Dictionary<string, LoxFunction> methods)
 		{
 			Name = name;
+			_methods = methods;
 		}
 
 		public override string ToString()
@@ -29,6 +31,16 @@ namespace LoxSharp
 			var instance = new LoxInstance(this);
 
 			return instance;
+		}
+
+		public LoxFunction FindMethod(string name)
+		{
+			if (_methods.ContainsKey(name))
+			{
+				return _methods[name];
+			}
+
+			return null;
 		}
 	}
 }

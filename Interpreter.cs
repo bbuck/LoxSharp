@@ -94,7 +94,15 @@ namespace LoxSharp
 		public object VisitClassStmt(Stmt.Class stmt)
 		{
 			_environment.Define(stmt.Name.Lexeme, null);
-			LoxClass klass = new LoxClass(stmt.Name.Lexeme);
+
+			var methods = new Dictionary<string, LoxFunction>();
+			foreach (var method in stmt.Methods)
+			{
+				var function = new LoxFunction(method, _environment);
+				methods[method.Name.Lexeme] = function;
+			}
+
+			LoxClass klass = new LoxClass(stmt.Name.Lexeme, methods);
 			_environment.Assign(stmt.Name, klass);
 
 			return null;
