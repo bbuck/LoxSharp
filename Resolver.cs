@@ -81,6 +81,14 @@ namespace LoxSharp
 			return null;
 		}
 
+		public object VisitClassStmt(Stmt.Class stmt)
+		{
+			Declare(stmt.Name);
+			Define(stmt.Name);
+
+			return null;
+		}
+
 		public object VisitFunctionExpr(Expr.Function expr)
 		{
 			ResolveFunction(expr, FunctionType.Function);

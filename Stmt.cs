@@ -12,6 +12,7 @@ namespace LoxSharp
 		{
 			R VisitExpressionStmt(Expression stmt);
 			R VisitFunctionStmt(Function stmt);
+			R VisitClassStmt(Class stmt);
 			R VisitReturnStmt(Return stmt);
 			R VisitPrintStmt(Print stmt);
 			R VisitVarStmt(Var stmt);
@@ -52,6 +53,23 @@ namespace LoxSharp
 			public override R Accept<R>(IVisitor<R> visitor)
 			{
 				return visitor.VisitFunctionStmt(this);
+			}
+		}
+
+		public class Class : Stmt
+		{
+			public Token Name { get; }
+			public List<Stmt.Function> Methods { get; }
+
+			public Class(Token name, List<Stmt.Function> methods)
+			{
+				this.Name = name;
+				this.Methods = methods;
+			}
+
+			public override R Accept<R>(IVisitor<R> visitor)
+			{
+				return visitor.VisitClassStmt(this);
 			}
 		}
 

@@ -91,6 +91,15 @@ namespace LoxSharp
 			return null;
 		}
 
+		public object VisitClassStmt(Stmt.Class stmt)
+		{
+			_environment.Define(stmt.Name.Lexeme, null);
+			LoxClass klass = new LoxClass(stmt.Name.Lexeme);
+			_environment.Assign(stmt.Name, klass);
+
+			return null;
+		}
+
 		public object VisitReturnStmt(Stmt.Return stmt)
 		{
 			object value = null;

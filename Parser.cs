@@ -27,7 +27,8 @@ namespace LoxSharp
 			return statements;
 		}
 
-		// declaration -> funDecl
+		// declaration -> classDecl
+		//              | funDecl
 		//              | varDecl
 		//              | statement
 		// funDecl -> "fun" function
@@ -35,6 +36,11 @@ namespace LoxSharp
 		{
 			try
 			{
+				if (Match(TokenType.Class))
+				{
+					return ClassDeclaration();
+				}
+
 				if (Match(TokenType.Fun))
 				{
 					return Function("function");
@@ -53,6 +59,23 @@ namespace LoxSharp
 
 				return null;
 			}
+		}
+
+		// classDecl -> "class" IDENTIFIER "{" function* "}" ;
+		private Stmt ClassDeclaration()
+		{
+			Token name = Consume(TokenType.Identifier, "Expect class name.");
+			Consume(TokenType.LeftBrace, "Expect '{' before class body.");
+
+			var methods = new List<Stmt.Function>();
+			while (!Check(TokenType.RightBrace) && !IsAtEnd())
+			{
+				methods.Add(Function("method") as Stmt.Function);
+			}
+
+			Consume(TokenType.RightBrace, "Expect '}' after class body.");
+
+			return new Stmt.Class(name, methods);
 		}
 
 		// function -> IDENTIFIER "(" paramters? ")" block

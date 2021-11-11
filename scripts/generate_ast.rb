@@ -25,6 +25,7 @@ Assign   : Token name, Expr value
 STMTS = '
 Expression  : Expr expr
 Function    : Token name, List<Token> parameters, List<Stmt> body
+Class       : Token name, List<Stmt.Function> methods
 Return      : Token keyword, Expr value
 Print       : Expr expr
 Var         : Token name, Expr initializer
