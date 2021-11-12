@@ -60,11 +60,13 @@ namespace LoxSharp
 		{
 			public Token Name { get; }
 			public List<Stmt.Function> Methods { get; }
+			public List<Stmt.Function> Statics { get; }
 
-			public Class(Token name, List<Stmt.Function> methods)
+			public Class(Token name, List<Stmt.Function> methods, List<Stmt.Function> statics)
 			{
 				this.Name = name;
 				this.Methods = methods;
+				this.Statics = statics;
 			}
 
 			public override R Accept<R>(IVisitor<R> visitor)

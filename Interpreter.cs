@@ -102,7 +102,14 @@ namespace LoxSharp
 				methods[method.Name.Lexeme] = function;
 			}
 
-			LoxClass klass = new LoxClass(stmt.Name.Lexeme, methods);
+			var statics = new Dictionary<string, LoxFunction>();
+			foreach (var staticMethod in stmt.Statics)
+			{
+				var function = new LoxFunction(staticMethod, _environment, false);
+				statics[staticMethod.Name.Lexeme] = function;
+			}
+
+			LoxClass klass = new LoxClass(stmt.Name.Lexeme, methods, statics);
 			_environment.Assign(stmt.Name, klass);
 
 			return null;

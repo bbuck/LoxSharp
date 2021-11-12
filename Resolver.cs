@@ -117,6 +117,11 @@ namespace LoxSharp
 				ResolveFunction(method, declaration);
 			}
 
+			foreach (var staticMethod in stmt.Statics)
+			{
+				ResolveFunction(staticMethod, FunctionType.Method);
+			}
+
 			EndScope();
 
 			_currentClass = enclosingClass;

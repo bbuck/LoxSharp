@@ -28,7 +28,7 @@ This     : Token keyword
 STMTS = '
 Expression  : Expr expr
 Function    : Token name, List<Token> parameters, List<Stmt> body
-Class       : Token name, List<Stmt.Function> methods
+Class       : Token name, List<Stmt.Function> methods, List<Stmt.Function> statics
 Return      : Token keyword, Expr value
 Print       : Expr expr
 Var         : Token name, Expr initializer

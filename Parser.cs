@@ -61,21 +61,29 @@ namespace LoxSharp
 			}
 		}
 
-		// classDecl -> "class" IDENTIFIER "{" function* "}" ;
+		// classDecl -> "class" IDENTIFIER "{" ( ( "class" )? function )* "}" ;
 		private Stmt ClassDeclaration()
 		{
 			Token name = Consume(TokenType.Identifier, "Expect class name.");
 			Consume(TokenType.LeftBrace, "Expect '{' before class body.");
 
 			var methods = new List<Stmt.Function>();
+			var statics = new List<Stmt.Function>();
 			while (!Check(TokenType.RightBrace) && !IsAtEnd())
 			{
-				methods.Add(Function("method") as Stmt.Function);
+				if (Match(TokenType.Class))
+				{
+					statics.Add(Function("static_method") as Stmt.Function);
+				}
+				else
+				{
+					methods.Add(Function("method") as Stmt.Function);
+				}
 			}
 
 			Consume(TokenType.RightBrace, "Expect '}' after class body.");
 
-			return new Stmt.Class(name, methods);
+			return new Stmt.Class(name, methods, statics);
 		}
 
 		// function -> IDENTIFIER "(" paramters? ")" block
@@ -90,9 +98,9 @@ namespace LoxSharp
 				return new Stmt.Expression(expr);
 			}
 
-			Token name = Consume(TokenType.Identifier, "Expect " + kind + " name.");
+			Token name = Consume(TokenType.Identifier, $"Expect {kind} name.");
 
-			Consume(TokenType.LeftParen, "Expect '(' after " + kind + " name.");
+			Consume(TokenType.LeftParen, $"Expect '(' after {kind} name.");
 			List<Token> parameters = new List<Token>();
 			if (!Check(TokenType.RightParen))
 			{
@@ -103,12 +111,12 @@ namespace LoxSharp
 						Error(Peek(), "Can't have more than 255 parameters");
 					}
 
-					parameters.Add(Consume(TokenType.Identifier, "Expect paramter name."));
+					parameters.Add(Consume(TokenType.Identifier, "Expect parameter name."));
 				} while (Match(TokenType.Comma));
 			}
 			Consume(TokenType.RightParen, "Expect ')' after parameters");
 
-			Consume(TokenType.LeftBrace, "Expect '{' before " + kind + " body.");
+			Consume(TokenType.LeftBrace, $"Expect '{{' before {kind} body.");
 			List<Stmt> body = Block();
 
 			return new Stmt.Function(name, parameters, body);

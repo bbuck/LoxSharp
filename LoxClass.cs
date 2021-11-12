@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace LoxSharp
 {
-	class LoxClass : ILoxCallable
+	class LoxClass : LoxInstance, ILoxCallable
 	{
 		public readonly string Name;
 		private readonly Dictionary<string, LoxFunction> _methods;
@@ -36,10 +36,14 @@ namespace LoxSharp
 			}
 		}
 
-		public LoxClass(string name, Dictionary<string, LoxFunction> methods)
+		public LoxClass(string name, Dictionary<string, LoxFunction> methods, Dictionary<string, LoxFunction> statics) : base(null)
 		{
 			Name = name;
 			_methods = methods;
+			if (statics != null)
+			{
+				_klass = new LoxClass($"{name} Metaclass", statics, null);
+			}
 		}
 
 		public override string ToString()

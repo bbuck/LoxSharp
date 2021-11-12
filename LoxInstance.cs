@@ -4,8 +4,8 @@ namespace LoxSharp
 {
 	class LoxInstance
 	{
-		private LoxClass _klass;
-		private readonly Dictionary<string, object> _fields = new Dictionary<string, object>();
+		protected LoxClass _klass;
+		protected readonly Dictionary<string, object> _fields = new Dictionary<string, object>();
 
 		public LoxInstance(LoxClass klass)
 		{
@@ -22,6 +22,11 @@ namespace LoxSharp
 			if (_fields.ContainsKey(name.Lexeme))
 			{
 				return _fields[name.Lexeme];
+			}
+
+			if (_klass == null)
+			{
+				throw new RuntimeError(name, "Metaclass metaclass function somehow called");
 			}
 
 			var method = _klass.FindMethod(name.Lexeme);
