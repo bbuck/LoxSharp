@@ -9,7 +9,7 @@ namespace LoxSharp
 		{
 			public Token Token { get; }
 
-			public LoopControlException(Token token) : base(string.Format("'{0}' encountered outside of loop body.", token.Lexeme))
+			public LoopControlException(Token token) : base($"'{token.Lexeme} encountered outside of loop body.")
 			{
 				this.Token = token;
 			}
@@ -85,7 +85,7 @@ namespace LoxSharp
 
 		public object VisitFunctionStmt(Stmt.Function stmt)
 		{
-			LoxFunction function = new LoxFunction(stmt, _environment);
+			LoxFunction function = new LoxFunction(stmt, _environment, false);
 			_environment.Define(function.Name, function);
 
 			return null;
@@ -98,7 +98,7 @@ namespace LoxSharp
 			var methods = new Dictionary<string, LoxFunction>();
 			foreach (var method in stmt.Methods)
 			{
-				var function = new LoxFunction(method, _environment);
+				var function = new LoxFunction(method, _environment, method.Name.Lexeme.Equals("init"));
 				methods[method.Name.Lexeme] = function;
 			}
 
