@@ -7,10 +7,31 @@ namespace LoxSharp
 		public readonly string Name;
 		private readonly Dictionary<string, LoxFunction> _methods;
 
+		private bool _initializerLoaded = false;
+		private LoxFunction _initializer;
+		private LoxFunction Initializer
+		{
+			get
+			{
+				if (!_initializerLoaded)
+				{
+					_initializerLoaded = true;
+					_initializer = FindMethod("init");
+				}
+
+				return _initializer;
+			}
+		}
+
 		public int Arity
 		{
 			get
 			{
+				if (Initializer != null)
+				{
+					return Initializer.Arity;
+				}
+
 				return 0;
 			}
 		}
@@ -29,6 +50,10 @@ namespace LoxSharp
 		public object Call(Interpreter interpreter, List<object> arguments)
 		{
 			var instance = new LoxInstance(this);
+			if (Initializer != null)
+			{
+				Initializer.Bind(instance).Call(interpreter, arguments);
+			}
 
 			return instance;
 		}
