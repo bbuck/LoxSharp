@@ -5,6 +5,13 @@ namespace LoxSharp
 {
 	class LoxFunction : ILoxCallable
 	{
+		public enum FunctionKind
+		{
+			Function,
+			Initializer,
+			Getter,
+		}
+
 		public int Arity
 		{
 			get
@@ -21,13 +28,14 @@ namespace LoxSharp
 			}
 		}
 
+		public FunctionKind Kind { get; private set; }
+
 		private readonly Stmt.Function _declaration;
 		private readonly Environment _closure;
-		private readonly bool _isInitializer = false;
 
-		public LoxFunction(Stmt.Function declaration, Environment closure, bool isInitializer)
+		public LoxFunction(Stmt.Function declaration, Environment closure, FunctionKind kind)
 		{
-			_isInitializer = isInitializer;
+			Kind = kind;
 			_declaration = declaration;
 			_closure = closure;
 		}
@@ -46,7 +54,7 @@ namespace LoxSharp
 			}
 			catch (Interpreter.ReturnException ret)
 			{
-				if (_isInitializer)
+				if (Kind == FunctionKind.Initializer)
 				{
 					return _closure.GetAt(0, "this");
 				}
@@ -54,7 +62,7 @@ namespace LoxSharp
 				return ret.Value;
 			}
 
-			if (_isInitializer)
+			if (Kind == FunctionKind.Initializer)
 			{
 				return _closure.GetAt(0, "this");
 			}
@@ -67,7 +75,7 @@ namespace LoxSharp
 			var environment = new Environment(_closure);
 			environment.Define("this", instance);
 
-			return new LoxFunction(_declaration, environment, _isInitializer);
+			return new LoxFunction(_declaration, environment, Kind);
 		}
 
 		public override string ToString()

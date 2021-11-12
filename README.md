@@ -33,3 +33,4 @@ At the end of certain chapters the author provides "Challenges," some of these c
    1. Challenge 3: I extended the Resolver to track usage of variables in addition to declaration/definition so that when scopes are cleared we can report errors for unused variables.
 1. Chapter 12
    1. Challenge 1: I implemented static methods via the `"class" function` syntax. Per the challenge in the book, `LoxClass` is a subclass of `LoxInstance` and it creates a "meta class" for itself when it's instantiated where the static methods are normal methods on the meta class. Being a subclass of `LoxInstance` is magically fits in where the instances already did (properties/fields and method calls).
+   1. Challenge 2: I implemented getters along side other functions. Getters are special methods with no parameter list and act like normal property get statements but will execute the function body. Think computed properties.

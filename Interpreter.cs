@@ -85,7 +85,7 @@ namespace LoxSharp
 
 		public object VisitFunctionStmt(Stmt.Function stmt)
 		{
-			LoxFunction function = new LoxFunction(stmt, _environment, false);
+			LoxFunction function = new LoxFunction(stmt, _environment, LoxFunction.FunctionKind.Function);
 			_environment.Define(function.Name, function);
 
 			return null;
@@ -98,14 +98,29 @@ namespace LoxSharp
 			var methods = new Dictionary<string, LoxFunction>();
 			foreach (var method in stmt.Methods)
 			{
-				var function = new LoxFunction(method, _environment, method.Name.Lexeme.Equals("init"));
+				var kind = LoxFunction.FunctionKind.Function;
+				if (method.Getter)
+				{
+					kind = LoxFunction.FunctionKind.Getter;
+				}
+				else if (method.Name.Lexeme.Equals("init"))
+				{
+					kind = LoxFunction.FunctionKind.Initializer;
+				}
+
+				var function = new LoxFunction(method, _environment, kind);
 				methods[method.Name.Lexeme] = function;
 			}
 
 			var statics = new Dictionary<string, LoxFunction>();
 			foreach (var staticMethod in stmt.Statics)
 			{
-				var function = new LoxFunction(staticMethod, _environment, false);
+				var kind = LoxFunction.FunctionKind.Function;
+				if (staticMethod.Getter)
+				{
+					kind = LoxFunction.FunctionKind.Getter;
+				}
+				var function = new LoxFunction(staticMethod, _environment, kind);
 				statics[staticMethod.Name.Lexeme] = function;
 			}
 
@@ -307,7 +322,17 @@ namespace LoxSharp
 			object obj = Evaluate(expr.Obj);
 			if (obj is LoxInstance)
 			{
-				return ((LoxInstance)obj).Get(expr.Name);
+				object result = ((LoxInstance)obj).Get(expr.Name);
+				if (result is LoxFunction)
+				{
+					var function = (LoxFunction)result;
+					if (function.Kind == LoxFunction.FunctionKind.Getter)
+					{
+						return function.Call(this, new List<object>());
+					}
+				}
+
+				return result;
 			}
 
 			throw new RuntimeError(expr.Name, "Only instances have properties.");

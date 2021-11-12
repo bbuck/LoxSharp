@@ -11,23 +11,23 @@ if ARGV.length != 1
 end
 
 EXPRS = '
-Binary   : Expr left, Token op, Expr right
-Call     : Expr callee, Token paren, List<Expr> arguments
-Function : List<Token> parameters, List<Stmt> body
-Logical  : Expr left, Token op, Expr right
-Grouping : Expr expression
-Literal  : object value
-Unary    : Token op, Expr right
-Variable : Token name
-Assign   : Token name, Expr value
-Get      : Expr obj, Token name
-Set      : Expr obj, Token name, Expr value
-This     : Token keyword
+Binary      : Expr left, Token op, Expr right
+Call        : Expr callee, Token paren, List<Expr> arguments
+Function    : List<Token> parameters, List<Stmt> body
+Logical     : Expr left, Token op, Expr right
+Grouping    : Expr expression
+Literal     : object value
+Unary       : Token op, Expr right
+Variable    : Token name
+Assign      : Token name, Expr value
+Get         : Expr obj, Token name
+Set         : Expr obj, Token name, Expr value
+This        : Token keyword
 '.split("\n").map(&:strip).reject(&:empty?)
 
 STMTS = '
 Expression  : Expr expr
-Function    : Token name, List<Token> parameters, List<Stmt> body
+Function    : Token name, List<Token> parameters, List<Stmt> body, bool getter
 Class       : Token name, List<Stmt.Function> methods, List<Stmt.Function> statics
 Return      : Token keyword, Expr value
 Print       : Expr expr

@@ -111,6 +111,11 @@ namespace LoxSharp
 				FunctionType declaration = FunctionType.Method;
 				if (method.Name.Lexeme.Equals("init"))
 				{
+					if (method.Getter)
+					{
+						Lox.Error(method.Name, "The initializer cannot be defined as a getter.");
+					}
+
 					declaration = FunctionType.Initializer;
 				}
 
@@ -310,6 +315,11 @@ namespace LoxSharp
 
 		void ResolveFunction(Stmt.Function function, FunctionType functionType)
 		{
+			if (function.Getter && _currentClass == ClassType.None)
+			{
+				Lox.Error(function.Name, "Getters can only be defined inside a class");
+			}
+
 			var enclosing = _currentFunction;
 			_currentFunction = functionType;
 

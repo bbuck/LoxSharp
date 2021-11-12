@@ -42,12 +42,14 @@ namespace LoxSharp
 			public Token Name { get; }
 			public List<Token> Parameters { get; }
 			public List<Stmt> Body { get; }
+			public bool Getter { get; }
 
-			public Function(Token name, List<Token> parameters, List<Stmt> body)
+			public Function(Token name, List<Token> parameters, List<Stmt> body, bool getter)
 			{
 				this.Name = name;
 				this.Parameters = parameters;
 				this.Body = body;
+				this.Getter = getter;
 			}
 
 			public override R Accept<R>(IVisitor<R> visitor)

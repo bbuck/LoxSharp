@@ -86,7 +86,7 @@ namespace LoxSharp
 			return new Stmt.Class(name, methods, statics);
 		}
 
-		// function -> IDENTIFIER "(" paramters? ")" block
+		// function -> IDENTIFIER ( "(" paramters? ")" )? block
 		// paramters -> IDENTIFIER ( "," IDENTIFIER )*
 		private Stmt Function(string kind)
 		{
@@ -100,26 +100,37 @@ namespace LoxSharp
 
 			Token name = Consume(TokenType.Identifier, $"Expect {kind} name.");
 
-			Consume(TokenType.LeftParen, $"Expect '(' after {kind} name.");
 			List<Token> parameters = new List<Token>();
-			if (!Check(TokenType.RightParen))
-			{
-				do
-				{
-					if (parameters.Count >= 255)
-					{
-						Error(Peek(), "Can't have more than 255 parameters");
-					}
 
-					parameters.Add(Consume(TokenType.Identifier, "Expect parameter name."));
-				} while (Match(TokenType.Comma));
+			var hasParamList = Check(TokenType.LeftParen);
+			if (hasParamList)
+			{
+				// Consume the left parenthesis.
+				Advance();
+
+				if (!Check(TokenType.RightParen))
+				{
+					do
+					{
+						if (parameters.Count >= 255)
+						{
+							Error(Peek(), "Can't have more than 255 parameters");
+						}
+
+						parameters.Add(Consume(TokenType.Identifier, "Expect parameter name."));
+					} while (Match(TokenType.Comma));
+				}
+				Consume(TokenType.RightParen, "Expect ')' after parameters");
 			}
-			Consume(TokenType.RightParen, "Expect ')' after parameters");
+			else if (!hasParamList && kind == "function")
+			{
+				Consume(TokenType.LeftParen, $"Expect '(' after {kind} name.");
+			}
 
 			Consume(TokenType.LeftBrace, $"Expect '{{' before {kind} body.");
 			List<Stmt> body = Block();
 
-			return new Stmt.Function(name, parameters, body);
+			return new Stmt.Function(name, parameters, body, !hasParamList);
 		}
 
 		// varDecl -> "var" IDENTIFIER ( "=" expression )? ";"
