@@ -46,6 +46,11 @@ namespace LoxSharp
 			}
 			catch (Interpreter.ReturnException ret)
 			{
+				if (_isInitializer)
+				{
+					return _closure.GetAt(0, "this");
+				}
+
 				return ret.Value;
 			}
 

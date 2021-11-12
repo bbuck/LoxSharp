@@ -7,6 +7,7 @@ namespace LoxSharp
 		None,
 		Function,
 		Method,
+		Initializer,
 	}
 
 	enum ClassType
@@ -108,6 +109,11 @@ namespace LoxSharp
 			foreach (var method in stmt.Methods)
 			{
 				FunctionType declaration = FunctionType.Method;
+				if (method.Name.Lexeme.Equals("init"))
+				{
+					declaration = FunctionType.Initializer;
+				}
+
 				ResolveFunction(method, declaration);
 			}
 
@@ -175,6 +181,11 @@ namespace LoxSharp
 			if (_currentFunction == FunctionType.None)
 			{
 				Lox.Error(stmt.Keyword, "Can't return from top-level code.");
+			}
+
+			if (_currentFunction == FunctionType.Initializer)
+			{
+				Lox.Error(stmt.Keyword, "Can't return a value from an initializer.");
 			}
 
 			if (stmt.Value != null)
