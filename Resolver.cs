@@ -9,6 +9,12 @@ namespace LoxSharp
 		Method,
 	}
 
+	enum ClassType
+	{
+		None,
+		Class,
+	}
+
 	enum VariableStatus
 	{
 		Declared,
@@ -30,6 +36,7 @@ namespace LoxSharp
 		private readonly Interpreter _interpreter;
 		private readonly List<Dictionary<string, Variable>> _scopes;
 		private FunctionType _currentFunction = FunctionType.None;
+		private ClassType _currentClass = ClassType.None;
 
 		public Resolver(Interpreter interpreter)
 		{
@@ -87,6 +94,9 @@ namespace LoxSharp
 
 		public object VisitClassStmt(Stmt.Class stmt)
 		{
+			var enclosingClass = _currentClass;
+			_currentClass = ClassType.Class;
+
 			Declare(stmt.Name);
 			Define(stmt.Name);
 
@@ -102,6 +112,8 @@ namespace LoxSharp
 			}
 
 			EndScope();
+
+			_currentClass = enclosingClass;
 
 			return null;
 		}
@@ -123,6 +135,13 @@ namespace LoxSharp
 
 		public object VisitThisExpr(Expr.This expr)
 		{
+			if (_currentClass == ClassType.None)
+			{
+				Lox.Error(expr.Keyword, "Can't use 'this' outside of class.");
+
+				return null;
+			}
+
 			ResolveLocal(expr, expr.Keyword);
 
 			return null;
