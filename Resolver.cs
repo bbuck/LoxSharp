@@ -121,6 +121,18 @@ namespace LoxSharp
 				UseVariable(SuperVariableName);
 			}
 
+			if (stmt.Mixins.Count > 0)
+			{
+				foreach (var mixin in stmt.Mixins)
+				{
+					if (stmt.Name.Lexeme == mixin.Name.Lexeme)
+					{
+						Lox.Error(mixin.Name, "A class can't mixin itself.");
+					}
+					Resolve(mixin);
+				}
+			}
+
 			BeginScope();
 			Declare(ThisVariableName);
 			Define(ThisVariableName);

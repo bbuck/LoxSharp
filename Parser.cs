@@ -61,7 +61,10 @@ namespace LoxSharp
 			}
 		}
 
-		// classDecl -> "class" IDENTIFIER ( "<" IDENTIFIER )? "{" ( ( "class" )? function )* "}" ;
+		// classDecl -> "class" IDENTIFIER
+		//              ( "<" IDENTIFIER )?
+		//              ( "<=" IDENTIFIER ( "," IDENTIFIER )* )?
+		//              "{" ( ( "class" )? function )* "}" ;
 		private Stmt ClassDeclaration()
 		{
 			Token name = Consume(TokenType.Identifier, "Expect class name.");
@@ -72,6 +75,21 @@ namespace LoxSharp
 			{
 				Consume(TokenType.Identifier, "Expect superclass name.");
 				superclass = new Expr.Variable(Previous());
+			}
+
+			var mixins = new List<Expr.Variable>();
+			if (Match(TokenType.LessEqual))
+			{
+				while (!Check(TokenType.RightBrace) && !IsAtEnd())
+				{
+					Consume(TokenType.Identifier, "Expect mixin name.");
+					mixins.Add(new Expr.Variable(Previous()));
+					if (!Match(TokenType.Comma))
+					{
+						break;
+					}
+
+				}
 			}
 
 			Consume(TokenType.LeftBrace, "Expect '{' before class body.");
@@ -92,7 +110,7 @@ namespace LoxSharp
 
 			Consume(TokenType.RightBrace, "Expect '}' after class body.");
 
-			return new Stmt.Class(name, superclass, methods, statics);
+			return new Stmt.Class(name, superclass, mixins, methods, statics);
 		}
 
 		// function -> IDENTIFIER ( "(" paramters? ")" )? block

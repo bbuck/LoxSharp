@@ -62,13 +62,15 @@ namespace LoxSharp
 		{
 			public Token Name { get; }
 			public Expr.Variable Superclass { get; }
+			public List<Expr.Variable> Mixins { get; }
 			public List<Stmt.Function> Methods { get; }
 			public List<Stmt.Function> Statics { get; }
 
-			public Class(Token name, Expr.Variable superclass, List<Stmt.Function> methods, List<Stmt.Function> statics)
+			public Class(Token name, Expr.Variable superclass, List<Expr.Variable> mixins, List<Stmt.Function> methods, List<Stmt.Function> statics)
 			{
 				this.Name = name;
 				this.Superclass = superclass;
+				this.Mixins = mixins;
 				this.Methods = methods;
 				this.Statics = statics;
 			}

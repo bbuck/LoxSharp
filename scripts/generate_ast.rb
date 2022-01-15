@@ -29,7 +29,7 @@ This        : Token keyword
 STMTS = '
 Expression  : Expr expr
 Function    : Token name, List<Token> parameters, List<Stmt> body, bool getter
-Class       : Token name, Expr.Variable superclass, List<Stmt.Function> methods, List<Stmt.Function> statics
+Class       : Token name, Expr.Variable superclass, List<Expr.Variable> mixins, List<Stmt.Function> methods, List<Stmt.Function> statics
 Return      : Token keyword, Expr value
 Print       : Expr expr
 Var         : Token name, Expr initializer

@@ -110,6 +110,25 @@ namespace LoxSharp
 				_environment.Define("super", superclass);
 			}
 
+			var mixins = new List<LoxClass>();
+			if (stmt.Mixins.Count > 0)
+			{
+				foreach (var mixinVar in stmt.Mixins)
+				{
+					object mixinObject = Evaluate(mixinVar);
+					if (!(mixinObject is LoxClass))
+					{
+						throw new RuntimeError(mixinVar.Name, "Mixin must be a class.");
+					}
+					var mixin = mixinObject as LoxClass;
+					if (mixin.IsSubclass)
+					{
+						throw new RuntimeError(mixinVar.Name, "Mixin class cannot inherit from another class.");
+					}
+					mixins.Add(mixin);
+				}
+			}
+
 			var methods = new Dictionary<string, LoxFunction>();
 			foreach (var method in stmt.Methods)
 			{
@@ -144,7 +163,12 @@ namespace LoxSharp
 				_environment = _environment.Enclosing;
 			}
 
-			LoxClass klass = new LoxClass(stmt.Name.Lexeme, superclass as LoxClass, methods, statics);
+			LoxClass klass = new LoxClass(
+				stmt.Name.Lexeme,
+				superclass as LoxClass,
+				mixins,
+				methods,
+				statics);
 			_environment.Assign(stmt.Name, klass);
 
 			return null;

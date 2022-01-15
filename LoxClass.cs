@@ -5,8 +5,10 @@ namespace LoxSharp
 	class LoxClass : LoxInstance, ILoxCallable
 	{
 		public readonly string Name;
-		private readonly Dictionary<string, LoxFunction> _methods;
-		private readonly LoxClass Superclass;
+		public readonly Dictionary<string, LoxFunction> Methods;
+
+		private readonly LoxClass _superclass;
+		private readonly List<LoxClass> _mixins;
 
 		private bool _initializerLoaded = false;
 		private LoxFunction _initializer;
@@ -24,6 +26,14 @@ namespace LoxSharp
 			}
 		}
 
+		public bool IsSubclass
+		{
+			get
+			{
+				return _superclass != null;
+			}
+		}
+
 		public int Arity
 		{
 			get
@@ -37,16 +47,30 @@ namespace LoxSharp
 			}
 		}
 
-		public LoxClass(string name, LoxClass superclass, Dictionary<string, LoxFunction> methods, Dictionary<string, LoxFunction> statics) : base(null)
+		public LoxClass(
+			string name,
+			LoxClass superclass,
+			List<LoxClass> mixins,
+			Dictionary<string, LoxFunction> methods,
+			Dictionary<string, LoxFunction> statics) : base(null)
 		{
 			Name = name;
-			Superclass = superclass;
-			_methods = methods;
+			_superclass = superclass;
+			Methods = methods;
+			_mixins = mixins;
 			if (statics != null)
 			{
-				_klass = new LoxClass($"{name} Metaclass", null, statics, null);
+				_klass = new LoxClass($"{name} Metaclass", null, mixins, statics, null);
 			}
 		}
+
+		public LoxClass(
+			string name,
+			LoxClass superclass,
+			Dictionary<string, LoxFunction> methods,
+			Dictionary<string, LoxFunction> statics)
+				: this(name, superclass, null, methods, statics)
+		{ }
 
 		public override string ToString()
 		{
@@ -66,14 +90,26 @@ namespace LoxSharp
 
 		public LoxFunction FindMethod(string name)
 		{
-			if (_methods.ContainsKey(name))
+			if (Methods.ContainsKey(name))
 			{
-				return _methods[name];
+				return Methods[name];
 			}
 
-			if (Superclass != null)
+			if (_superclass != null)
 			{
-				return Superclass.FindMethod(name);
+				return _superclass.FindMethod(name);
+			}
+
+			if (_mixins != null && _mixins.Count > 0)
+			{
+				foreach (var mixin in _mixins)
+				{
+					var method = mixin.FindMethod(name);
+					if (method != null)
+					{
+						return method;
+					}
+				}
 			}
 
 			return null;
