@@ -22,13 +22,14 @@ Variable    : Token name
 Assign      : Token name, Expr value
 Get         : Expr obj, Token name
 Set         : Expr obj, Token name, Expr value
+Super       : Token keyword, Token method
 This        : Token keyword
 '.split("\n").map(&:strip).reject(&:empty?)
 
 STMTS = '
 Expression  : Expr expr
 Function    : Token name, List<Token> parameters, List<Stmt> body, bool getter
-Class       : Token name, List<Stmt.Function> methods, List<Stmt.Function> statics
+Class       : Token name, Expr.Variable superclass, List<Stmt.Function> methods, List<Stmt.Function> statics
 Return      : Token keyword, Expr value
 Print       : Expr expr
 Var         : Token name, Expr initializer

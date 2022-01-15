@@ -21,6 +21,7 @@ namespace LoxSharp
 			R VisitAssignExpr(Assign expr);
 			R VisitGetExpr(Get expr);
 			R VisitSetExpr(Set expr);
+			R VisitSuperExpr(Super expr);
 			R VisitThisExpr(This expr);
 		}
 
@@ -210,6 +211,23 @@ namespace LoxSharp
 			public override R Accept<R>(IVisitor<R> visitor)
 			{
 				return visitor.VisitSetExpr(this);
+			}
+		}
+
+		public class Super : Expr
+		{
+			public Token Keyword { get; }
+			public Token Method { get; }
+
+			public Super(Token keyword, Token method)
+			{
+				this.Keyword = keyword;
+				this.Method = method;
+			}
+
+			public override R Accept<R>(IVisitor<R> visitor)
+			{
+				return visitor.VisitSuperExpr(this);
 			}
 		}
 

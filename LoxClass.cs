@@ -6,6 +6,7 @@ namespace LoxSharp
 	{
 		public readonly string Name;
 		private readonly Dictionary<string, LoxFunction> _methods;
+		private readonly LoxClass Superclass;
 
 		private bool _initializerLoaded = false;
 		private LoxFunction _initializer;
@@ -36,13 +37,14 @@ namespace LoxSharp
 			}
 		}
 
-		public LoxClass(string name, Dictionary<string, LoxFunction> methods, Dictionary<string, LoxFunction> statics) : base(null)
+		public LoxClass(string name, LoxClass superclass, Dictionary<string, LoxFunction> methods, Dictionary<string, LoxFunction> statics) : base(null)
 		{
 			Name = name;
+			Superclass = superclass;
 			_methods = methods;
 			if (statics != null)
 			{
-				_klass = new LoxClass($"{name} Metaclass", statics, null);
+				_klass = new LoxClass($"{name} Metaclass", null, statics, null);
 			}
 		}
 
@@ -67,6 +69,11 @@ namespace LoxSharp
 			if (_methods.ContainsKey(name))
 			{
 				return _methods[name];
+			}
+
+			if (Superclass != null)
+			{
+				return Superclass.FindMethod(name);
 			}
 
 			return null;

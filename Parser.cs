@@ -61,10 +61,19 @@ namespace LoxSharp
 			}
 		}
 
-		// classDecl -> "class" IDENTIFIER "{" ( ( "class" )? function )* "}" ;
+		// classDecl -> "class" IDENTIFIER ( "<" IDENTIFIER )? "{" ( ( "class" )? function )* "}" ;
 		private Stmt ClassDeclaration()
 		{
 			Token name = Consume(TokenType.Identifier, "Expect class name.");
+
+			// Superclass?
+			Expr.Variable superclass = null;
+			if (Match(TokenType.Less))
+			{
+				Consume(TokenType.Identifier, "Expect superclass name.");
+				superclass = new Expr.Variable(Previous());
+			}
+
 			Consume(TokenType.LeftBrace, "Expect '{' before class body.");
 
 			var methods = new List<Stmt.Function>();
@@ -83,7 +92,7 @@ namespace LoxSharp
 
 			Consume(TokenType.RightBrace, "Expect '}' after class body.");
 
-			return new Stmt.Class(name, methods, statics);
+			return new Stmt.Class(name, superclass, methods, statics);
 		}
 
 		// function -> IDENTIFIER ( "(" paramters? ")" )? block
@@ -537,7 +546,8 @@ namespace LoxSharp
 		// arguments -> expression ( "," expression )*
 
 		// primary        → NUMBER | STRING | "true" | "false" | "nil"
-		//                | "(" expression ")" ;
+		//                | "(" expression ")"
+		//                | "super" "." IDENTIFIER ;
 		private Expr Primary()
 		{
 			if (Match(TokenType.False))
@@ -566,6 +576,15 @@ namespace LoxSharp
 				Consume(TokenType.RightParen, "Expect ')' after expression.");
 
 				return new Expr.Grouping(expr);
+			}
+
+			if (Match(TokenType.Super))
+			{
+				Token keyword = Previous();
+				Consume(TokenType.Dot, "Expect '.' after 'super'.");
+				Token method = Consume(TokenType.Identifier, "Expect superclass method name.");
+
+				return new Expr.Super(keyword, method);
 			}
 
 			if (Match(TokenType.This))

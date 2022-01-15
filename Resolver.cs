@@ -14,6 +14,7 @@ namespace LoxSharp
 	{
 		None,
 		Class,
+		Subclass,
 	}
 
 	enum VariableStatus
@@ -33,6 +34,7 @@ namespace LoxSharp
 		}
 
 		public static readonly string ThisVariableName = "this";
+		public static readonly string SuperVariableName = "super";
 
 		private readonly Interpreter _interpreter;
 		private readonly List<Dictionary<string, Variable>> _scopes;
@@ -101,6 +103,24 @@ namespace LoxSharp
 			Declare(stmt.Name);
 			Define(stmt.Name);
 
+			if (stmt.Superclass != null)
+			{
+				if (stmt.Name.Lexeme == stmt.Superclass.Name.Lexeme)
+				{
+					Lox.Error(stmt.Superclass.Name, "A class can't inherit from itself.");
+				}
+				_currentClass = ClassType.Subclass;
+				Resolve(stmt.Superclass);
+			}
+
+			if (stmt.Superclass != null)
+			{
+				BeginScope();
+				Declare(SuperVariableName);
+				Define(SuperVariableName);
+				UseVariable(SuperVariableName);
+			}
+
 			BeginScope();
 			Declare(ThisVariableName);
 			Define(ThisVariableName);
@@ -129,6 +149,11 @@ namespace LoxSharp
 
 			EndScope();
 
+			if (stmt.Superclass != null)
+			{
+				EndScope();
+			}
+
 			_currentClass = enclosingClass;
 
 			return null;
@@ -145,6 +170,24 @@ namespace LoxSharp
 		{
 			Resolve(expr.Value);
 			ResolveLocal(expr, expr.Name);
+
+			return null;
+		}
+
+		public object VisitSuperExpr(Expr.Super expr)
+		{
+			if (_currentClass == ClassType.None)
+			{
+				Lox.Error(expr.Keyword, "Can't use 'super' outside of a class.");
+
+				return null;
+			}
+			else if (_currentClass != ClassType.Subclass)
+			{
+				Lox.Error(expr.Keyword, "Can't use 'super' in a class with no superclass.");
+			}
+
+			ResolveLocal(expr, expr.Keyword);
 
 			return null;
 		}
