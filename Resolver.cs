@@ -229,7 +229,10 @@ namespace LoxSharp
 		{
 			Resolve(stmt.Condition);
 			Resolve(stmt.ThenBranch);
-			Resolve(stmt.ElseBranch);
+			if (stmt.ElseBranch != null)
+			{
+				Resolve(stmt.ElseBranch);
+			}
 
 			return null;
 		}
